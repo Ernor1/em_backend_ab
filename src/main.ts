@@ -12,10 +12,20 @@ async function bootstrap() {
     .setVersion('1.0')
     .addTag('Users')
     .addTag('Auth')
+    .addTag('Employee')
+    .addTag('Department')
+    .addTag('Attendance Setting')
+    .addTag('Attendance')
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api-doc', app, document);
+  SwaggerModule.setup('api-doc', app, document, {
+    swaggerOptions: {
+      persistAuthorization: true,
+      docExpansion: 'none',
+    },
+  });
   await app.listen(process.env.PORT || 3000)
+  console.log(`Application is running on: ${await app.getUrl()}`)
 }
 bootstrap()

@@ -3,6 +3,7 @@ import { Prisma, User } from '@prisma/client';
 import { DatabaseService } from 'src/database/database.service';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 type UserWithRoles = Prisma.UserGetPayload<{
   include: { roles: true }
 }>
@@ -13,17 +14,63 @@ export class UsersService {
 
   }
   async create(createUserDto: CreateUserDto) {
-    createUserDto.password = await bcrypt.hash(createUserDto.password, 10)
-    return await this.databaseService.user.create({
-      data: {
-        firstName: createUserDto.firstName,
-        lastName: createUserDto.lastName,
-        email: createUserDto.email,
-        password: createUserDto.password,
-        status: createUserDto.status
+    try {
+      createUserDto.password = await bcrypt.hash(createUserDto.password, 10);
+
+      // Fetch the roles from the database using the provided role IDs
+      const roles = await this.databaseService.role.findMany({
+        where: {
+          id: { in: createUserDto.roles },
+        },
+      });
+
+      // Check if any of the roles have the name "ADMIN"
+      const hasAdminRole = roles.some(role => role.name === 'ADMIN');
+
+      // If an ADMIN role is found, ask for or validate the admin key
+      if (hasAdminRole) {
+        if (!createUserDto.adminKey || createUserDto.adminKey !== process.env.ADMIN_KEY) {
+          throw new Error('Invalid admin key. Cannot assign ADMIN role.');
+        }
       }
-    });
+
+      // Filter roles, removing "ADMIN" if no valid admin key is provided
+      const rolesToAssign = roles.filter(role => {
+        if (role.name === 'ADMIN') {
+          return createUserDto.adminKey && createUserDto.adminKey === process.env.ADMIN_KEY;
+        }
+        return true;
+      });
+
+      // Create the user with the valid roles
+      let user = await this.databaseService.user.create({
+        data: {
+          firstName: createUserDto.firstName,
+          lastName: createUserDto.lastName,
+          email: createUserDto.email,
+          password: createUserDto.password,
+          status: createUserDto.status,
+          roles: {
+            connect: rolesToAssign.map(role => ({ id: role.id }))
+          }
+        },
+        include: { roles: true }
+      },);
+      return {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        status: user.status,
+        roles: user.roles
+      }
+    } catch (e) {
+      throw e;
+    }
+
   }
+
+
 
   async findAll() {
     return this.databaseService.user.findMany({
@@ -56,7 +103,7 @@ export class UsersService {
     return user;
   }
 
-  async update(id: string, updateUserDto: Prisma.UserUpdateInput) {
+  async update(id: string, updateUserDto: UpdateUserDto) {
     return this.databaseService.user.update({
       data: {
         firstName: updateUserDto.firstName,

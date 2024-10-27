@@ -4,6 +4,7 @@ import { UpdateRoleDto } from './dto/update-role.dto';
 import { DatabaseService } from 'src/database/database.service';
 import { AssignRoleDto } from './dto/assign-role.dto';
 import { UsersService } from 'src/users/users.service';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class RolesService {
@@ -26,6 +27,13 @@ export class RolesService {
     return this.dataBaseService.role.findUnique({
       where: {
         id
+      }
+    })
+  }
+  async findByName(name: string) {
+    return this.dataBaseService.role.findFirst({
+      where: {
+        name
       }
     })
   }
@@ -84,6 +92,34 @@ export class RolesService {
       throw new InternalServerErrorException(error.message);
     }
   }
+  async initiateRoles(): Promise<boolean> {
+    try {
+      const sampleRoles: string[] = [
+        "ADMIN",
+        "EMPLOYEE",
+        "ATTENDANCE_TAKER",
+      ];
 
+      // Create an array of promises for role creation
+      const rolePromises = sampleRoles.map(async (role: string) => {
+        const persistedRole: Role | null = await this.findByName(role);
+        if (persistedRole == null) {
+          await this.dataBaseService.role.create({
+            data: {
+              name: role
+            }
+          });
+        }
+      });
+
+      // Wait for all promises to complete
+      await Promise.all(rolePromises);
+
+      return true;
+    } catch (error) {
+      console.error('Error initiating roles:', error);
+      return false;
+    }
+  }
 
 }

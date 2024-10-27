@@ -1,25 +1,25 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseUUIDPipe } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { ApiBearerAuth, ApiParam, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/decorators/roles.decorator';
 import { Role_Enum } from 'src/enums/role.enum';
 import { ApiResponse } from 'src/responses/api.response';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { Allow } from 'src/decorators/allow.decorator';
 
 @Controller('users')
 @UseGuards(AuthGuard)
-@Roles(Role_Enum.ADMIN)
+// @Roles(Role_Enum.ADMIN)
 @ApiTags('Users')
 @ApiBearerAuth()
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
-
+  @Allow()
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
-    const user = await this.usersService.create(createUserDto)
-    return new ApiResponse(true, "User Created Successfully", user);
+    return new ApiResponse(true, "User Created Successfully", await this.usersService.create(createUserDto));
   }
 
   @Get()
