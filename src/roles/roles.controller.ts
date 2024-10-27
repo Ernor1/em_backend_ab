@@ -7,6 +7,7 @@ import { AuthGuard } from 'src/guards/auth.guard';
 import { AssignRoleDto } from './dto/assign-role.dto';
 import { ApiResponse } from 'src/responses/api.response';
 import { FindOneParam } from 'src/pipes/param-validation.pipe';
+import { Allow } from 'src/decorators/allow.decorator';
 
 @UseGuards(AuthGuard)
 @ApiTags('Roles')
@@ -19,7 +20,7 @@ export class RolesController {
   async create(@Body() createRoleDto: CreateRoleDto) {
     return new ApiResponse(true, "Role Created", await this.rolesService.create(createRoleDto));
   }
-
+  @Allow()
   @Get()
   async findAll() {
     return new ApiResponse(true, "All Roles", await this.rolesService.findAll());

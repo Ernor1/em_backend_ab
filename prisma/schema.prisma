@@ -12,7 +12,7 @@ model User {
   firstName String
   lastName  String
   email     String @unique
-  password  String
+  password  String?
   roles Role[]
   empolyee Employee?
   status    Status @default(ACTIVE)
@@ -40,14 +40,17 @@ model Department {
   id          String      @id @default(uuid())
   name        String      @unique
   employees   Employee[]
+  attendanceSettings AttendanceSetting @relation(fields: [attendanceSettingId], references: [id])
+  attendanceSettingId String
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 }
 model AttendanceSetting{
   id String @id @default(uuid())
-  startTime DateTime
-  endTime DateTime
+  startTime String
+  endTime String
   attendances Attendance[]
+  department Department[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -59,8 +62,8 @@ model Attendance {
   attendanceSettingId String
   employeeId  String
   date        DateTime    @default(now())
-  entryTime   DateTime
-  exitTime    DateTime?
+  entryTime   String
+  exitTime    String?
   status      AttendanceStatus
   notes       String?
   createdAt   DateTime    @default(now())
