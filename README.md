@@ -73,7 +73,7 @@ The application includes a well-detailed and interactive API documentation using
 1. **Clone the repository:**
    ```bash
    git clone https://github.com/Ernor1/em_backend_ab.git
-   cd employee-management-app
+   cd em_backend_ab
    ```
 
 2. **Install dependencies:**
