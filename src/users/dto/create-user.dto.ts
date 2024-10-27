@@ -25,11 +25,12 @@ export class CreateUserDto {
     password: string
     @ApiProperty()
     status?: Status
-    @IsOptional()
+    @ApiProperty()
     @IsArray()
-    @ApiProperty()
     roles: string[]
-    @ApiProperty()
+    @ApiProperty({
+        description: 'This is the admin key that will be used to create an admin user. This is optional'
+    })
     @IsOptional()
     @IsString()
     adminKey?: string

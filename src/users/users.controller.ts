@@ -19,7 +19,11 @@ export class UsersController {
   @Allow()
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
-    return new ApiResponse(true, "User Created Successfully", await this.usersService.create(createUserDto));
+    try {
+      return new ApiResponse(true, "User Created Successfully", await this.usersService.create(createUserDto));
+    } catch (e) {
+      return new ApiResponse(false, e.message, null);
+    }
   }
 
   @Get()
